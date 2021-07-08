@@ -1,7 +1,7 @@
 import fs from 'fs';
-import { promisify } from 'util';
+import {promisify} from 'util';
 
-import mysql, { Pool } from 'mysql2/promise';
+import mysql, {Pool} from 'mysql2/promise';
 import moment from 'moment';
 
 const asyncExist = promisify(fs.exists);
@@ -58,8 +58,7 @@ export function generateInsertCode(queryResult: Array<any>, fullTableName: strin
   const data: Array<object> = queryResult[0];
   const strData: Array<string> = data.map((el: object) => `(${fields.map((field: string) => getObjectValue(el, field)).join()})`);
 
-  let result: string = `INSERT INTO ${fullTableName} (${fields.join()}) VALUES \n${strData.join(',\n')};`;
-  return result;
+  return `INSERT INTO ${fullTableName} (${fields.join()}) VALUES \n${strData.join(',\n')};`;
 }
 
 export async function saveToFile(sqlDirPath: string, filePath: string, filename: string, fileContent: string) {
@@ -94,7 +93,7 @@ async function getDirContentRecursive(path: string, opositeDirFilter: Array<stri
     if (elementStat.isDirectory()) {
       if (!opositeDirFilter.includes(dirElement)) {
         fileList = [ ...fileList, ...(await getDirContentRecursive(elementPath, opositeDirFilter)) ];
-      }      
+      }
     } else {
       fileList.push(elementPath);
     }

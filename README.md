@@ -24,5 +24,3 @@ There are few functions in the library:
 - `saveAllTablesWithData` - save tables and datas from data base into files (please don't use with `saveAllTables`, choose only one of them);
 - `loadAllRoutines` - upload routines (functions and procedures) from files to database;
 - `loadAllTables` - upload tables creating code from files to database;
-
-

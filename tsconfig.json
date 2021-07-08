@@ -9,6 +9,6 @@
     "sourceMap": true,
     "outDir": "dist",
     "types": ["node"],
-    "rootDir": "src"
+    "rootDir": "./"
   }
 }
