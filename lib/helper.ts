@@ -1,8 +1,7 @@
 import fs from 'fs';
-import {promisify} from 'util';
+import { promisify } from 'util';
 
-import mysql, {Pool} from 'mysql2/promise';
-import moment from 'moment';
+import mysql, { Pool } from 'mysql2/promise';
 
 const asyncExist = promisify(fs.exists);
 const asyncWrite = promisify(fs.writeFile);
@@ -36,31 +35,6 @@ export async function createDirIfNotExist(path: string) {
   }
 }
 
-function getObjectValue(obj: object, field: string) {
-  let value: string | number | null | boolean;
-
-  if (typeof obj[field] === 'string') {
-    value = `'${obj[field]}'`;
-  } else if (typeof obj[field] === 'object' && obj[field] instanceof Date) {
-    value = `'${moment(obj[field]).format('YYYY-MM-DD hh:mm:ss')}'`;
-  } else if (typeof obj[field] === 'object') {
-    value = `'${JSON.stringify(obj[field])}'`;
-  } else {
-    value = obj[field]
-  }
-
-  return value;
-}
-
-export function generateInsertCode(queryResult: Array<any>, fullTableName: string): string {
-  if (queryResult.length < 2) return '';
-  const fields: Array<string> = queryResult[1].map((field) => field.name);
-  const data: Array<object> = queryResult[0];
-  const strData: Array<string> = data.map((el: object) => `(${fields.map((field: string) => getObjectValue(el, field)).join()})`);
-
-  return `INSERT INTO ${fullTableName} (${fields.join()}) VALUES \n${strData.join(',\n')};`;
-}
-
 export async function saveToFile(sqlDirPath: string, filePath: string, filename: string, fileContent: string) {
   const fullFilePath = `${sqlDirPath}/${filePath}`;
 
@@ -92,7 +66,7 @@ async function getDirContentRecursive(path: string, opositeDirFilter: Array<stri
 
     if (elementStat.isDirectory()) {
       if (!opositeDirFilter.includes(dirElement)) {
-        fileList = [ ...fileList, ...(await getDirContentRecursive(elementPath, opositeDirFilter)) ];
+        fileList = [...fileList, ...(await getDirContentRecursive(elementPath, opositeDirFilter))];
       }
     } else {
       fileList.push(elementPath);

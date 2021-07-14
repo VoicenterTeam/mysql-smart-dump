@@ -1,6 +1,5 @@
-import { Pool } from 'mysql2/promise';
-
-import { saveToFile, ConnectionObject, getPoolConnection, insertIntoText } from './helper';
+import { saveToFile, ConnectionObject, insertIntoText } from './helper';
+import RootDumper from './RootDumper';
 
 type Routine = {
   db: string;
@@ -13,14 +12,16 @@ const createTemplate: object = {
   PROCEDURE: /^CREATE .* PROCEDURE /,
 };
 
-export default function routineDump(sqlFilesPath: string, connectionOptions: ConnectionObject) {
+export class RoutineDumper extends RootDumper {
 
-  let db: Pool;
+  constructor(sqlFilesPath: string, connectionOptions: ConnectionObject) {
+    super(sqlFilesPath, connectionOptions);
+  }
 
-  async function getRoutine(routineType: string): Promise<Routine[]> {
+  private async getRoutine(routineType: string): Promise<Routine[]> {
     let routineList: Array<Routine>;
 
-    const res = await db.query(`SHOW ${routineType.toUpperCase()} STATUS;`);
+    const res = await this.db.query(`SHOW ${routineType.toUpperCase()} STATUS;`);
 
     if (Array.isArray(res[0])) {
       routineList = res[0].map((el) => ({ db: el.Db, name: el.Name, type: el.Type }));
@@ -29,32 +30,31 @@ export default function routineDump(sqlFilesPath: string, connectionOptions: Con
     return routineList;
   }
 
-  async function getAllRoutine(): Promise<Routine[]> {
-    const res: Array<Array<Routine>> = await Promise.all([getRoutine('PROCEDURE'), getRoutine('FUNCTION')]);
+  private async getAllRoutine(): Promise<Routine[]> {
+    const res: Array<Array<Routine>> = await Promise.all([this.getRoutine('PROCEDURE'), this.getRoutine('FUNCTION')]);
 
     return res.reduce((acc, el) => acc.concat(el), []);
   }
 
-  async function saveAllRoutines() {
-    db = await getPoolConnection(connectionOptions);
+  public async saveAllRoutines() {
+    await this.initDBConnection();
 
-    let routines: Array<Routine> = await getAllRoutine();
+    let routines: Array<Routine> = await this.getAllRoutine();
 
     await Promise.allSettled(routines.map(async (routine: Routine): Promise<boolean> => {
-      const res = await db.query(`SHOW CREATE ${routine.type} ${routine.db}.${routine.name};`);
+      const res = await this.db.query(`SHOW CREATE ${routine.type} ${routine.db}.${routine.name};`);
 
       if (res[0] && res[0][0] && (res[0][0]['Create Function'] || res[0][0]['Create Procedure'])) {
         let createText: string = res[0][0]['Create Function'] ? res[0][0]['Create Function'] : res[0][0]['Create Procedure'];
         createText = insertIntoText(createText, createTemplate[routine.type.toUpperCase()], `\`${routine.db}\`.`);
-        await saveToFile(sqlFilesPath, `${routine.db}/${routine.type}`, `${routine.name}.sql`, createText);
+        await saveToFile(this.sqlFilesPath, `${routine.db}/${routine.type}`, `${routine.name}.sql`, createText);
         console.log(`Save ${routine.type} ${routine.db}.${routine.name}`);
       }
 
       return true;
     }));
 
-    db.end();
+    await this.closeDBConnection();
   }
 
-  return { saveAllRoutines };
 }
