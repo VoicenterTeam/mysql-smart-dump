@@ -14,7 +14,7 @@ const createTemplate: object = {
 
 export class RoutineDumper extends RootDumper {
 
-  constructor (sqlFilesPath: string, connectionOptions: ConnectionObject) {
+  constructor(sqlFilesPath: string, connectionOptions: ConnectionObject) {
     super(sqlFilesPath, connectionOptions);
   }
 

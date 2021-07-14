@@ -66,8 +66,8 @@ async function getDirContentRecursive(path: string, opositeDirFilter: Array<stri
 
     if (elementStat.isDirectory()) {
       if (!opositeDirFilter.includes(dirElement)) {
-        fileList = [ ...fileList, ...(await getDirContentRecursive(elementPath, opositeDirFilter)) ];
-      }      
+        fileList = [...fileList, ...(await getDirContentRecursive(elementPath, opositeDirFilter))];
+      }
     } else {
       fileList.push(elementPath);
     }
